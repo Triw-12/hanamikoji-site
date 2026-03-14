@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "python3 manage.py migrate && python3 manage.py shell -c \"from django.contrib.auth import get_user_model; import os; User=get_user_model(); username=os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin'); email=os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com'); password=os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin'); User.objects.filter(username=username).exists() or User.objects.create_superuser(username=username, email=email, password=password)\" && daphne -b 0.0.0.0 -p 8000 website.asgi:application"
+    command: sh -c "python3 manage.py migrate && (python3 manage.py createsuperuser --noinput || true) && daphne -b 0.0.0.0 -p 8000 website.asgi:application"
     ports:
       - "8000:8000"
     volumes:
