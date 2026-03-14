@@ -1,0 +1,32 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "python3 manage.py migrate && python3 manage.py shell -c \"from django.contrib.auth import get_user_model; import os; User=get_user_model(); username=os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin'); email=os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@example.com'); password=os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin'); User.objects.filter(username=username).exists() or User.objects.create_superuser(username=username, email=email, password=password)\" && daphne -b 0.0.0.0 -p 8000 website.asgi:application"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./website:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: website.settings
+      PYTHONUNBUFFERED: "1"
+      DJANGO_SUPERUSER_USERNAME: admin
+      DJANGO_SUPERUSER_EMAIL: admin@example.com
+      DJANGO_SUPERUSER_PASSWORD: admin
+    restart: unless-stopped
+
+  qcluster:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "python3 manage.py migrate && python3 manage.py qcluster"
+    privileged: true
+    volumes:
+      - ./website:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: website.settings
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      - web
+    restart: unless-stopped

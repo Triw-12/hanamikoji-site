@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -138,7 +139,7 @@ DATE_FORMAT = "l d F y"
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
     "static/",
@@ -181,6 +182,6 @@ MAX_ISOLATE = 1000
 SERVER_TIMEOUT = 1500
 MATCH_SERVER_TIMEOUT = 4000
 ISOLATE_TIMEOUT = 90
-MATCH_RULES = '/usr/lib/libhanamikoji.so'
+MATCH_RULES = os.environ.get('MATCH_RULES', '/usr/lib64/libhanamikoji.so')
 STECHEC_SERVER = '/usr/bin/stechec2-server'
 STECHEC_CLIENT = '/usr/bin/stechec2-client'
