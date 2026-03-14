@@ -66,6 +66,7 @@ cp .env.example .env
 2. Adaptez les variables sensibles dans `.env` (`DJANGO_SECRET_KEY`, `DJANGO_SUPERUSER_PASSWORD`, `DJANGO_ALLOWED_HOSTS`, etc.).
 	`DJANGO_ENV` accepte `developpement` ou `production`.
 	`DJANGO_DEBUG` accepte `True` ou `False`.
+	Pour PostgreSQL en production, mettez `DJANGO_ENV=production` et configurez `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`.
 
 3. Démarrez les services :
 

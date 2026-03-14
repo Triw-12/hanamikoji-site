@@ -1,4 +1,21 @@
 services:
+  db:
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-hanamikoji}
+      POSTGRES_USER: ${DB_USER:-hanamikoji}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hanamikoji} -d ${DB_NAME:-hanamikoji}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   web:
     build:
       context: .
@@ -20,7 +37,15 @@ services:
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
+      DB_NAME: ${DB_NAME:-hanamikoji}
+      DB_USER: ${DB_USER:-hanamikoji}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
       MATCH_RULES: ${MATCH_RULES:-/usr/lib64/libhanamikoji.so}
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
   qcluster:
@@ -40,7 +65,18 @@ services:
       DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-127.0.0.1,localhost}
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-change-me}
+      DB_NAME: ${DB_NAME:-hanamikoji}
+      DB_USER: ${DB_USER:-hanamikoji}
+      DB_PASSWORD: ${DB_PASSWORD:-change-me}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
       MATCH_RULES: ${MATCH_RULES:-/usr/lib64/libhanamikoji.so}
     depends_on:
-      - web
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
     restart: unless-stopped
+
+volumes:
+  postgres_data:

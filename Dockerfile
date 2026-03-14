@@ -73,6 +73,7 @@ RUN pip install --no-cache-dir \
     django==4.2.3 \
     django-q \
     daphne \
+    psycopg2-binary \
     "channels[daphne]"
 
 COPY --from=engine-build /engine-root/usr/ /usr/
