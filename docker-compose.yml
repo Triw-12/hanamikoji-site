@@ -4,16 +4,23 @@ services:
       context: .
       dockerfile: Dockerfile
     command: sh -c "python3 manage.py migrate && (python3 manage.py createsuperuser --noinput || true) && daphne -b 0.0.0.0 -p 8000 website.asgi:application"
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     volumes:
       - ./website:/app
     environment:
-      DJANGO_SETTINGS_MODULE: website.settings
-      PYTHONUNBUFFERED: "1"
-      DJANGO_SUPERUSER_USERNAME: admin
-      DJANGO_SUPERUSER_EMAIL: admin@example.com
-      DJANGO_SUPERUSER_PASSWORD: admin
+      DJANGO_ENV: ${DJANGO_ENV:-developpement}
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-website.settings}
+      PYTHONUNBUFFERED: ${PYTHONUNBUFFERED:-1}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-127.0.0.1,localhost}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-change-me}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
+      DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
+      MATCH_RULES: ${MATCH_RULES:-/usr/lib64/libhanamikoji.so}
     restart: unless-stopped
 
   qcluster:
@@ -21,12 +28,19 @@ services:
       context: .
       dockerfile: Dockerfile
     command: sh -c "python3 manage.py migrate && python3 manage.py qcluster"
+    env_file:
+      - .env
     privileged: true
     volumes:
       - ./website:/app
     environment:
-      DJANGO_SETTINGS_MODULE: website.settings
-      PYTHONUNBUFFERED: "1"
+      DJANGO_ENV: ${DJANGO_ENV:-developpement}
+      DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-website.settings}
+      PYTHONUNBUFFERED: ${PYTHONUNBUFFERED:-1}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-True}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-127.0.0.1,localhost}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-django-insecure-change-me}
+      MATCH_RULES: ${MATCH_RULES:-/usr/lib64/libhanamikoji.so}
     depends_on:
       - web
     restart: unless-stopped

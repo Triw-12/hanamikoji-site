@@ -57,6 +57,18 @@ Vous pouvez ensuite déployer le site avec Ngnix ou Apache avec un reverse proxy
 
 Il est possible de déployer le site directement via Docker. Assurez-vous d'avoir Docker et Docker Compose installés, puis exécutez la commande suivante à la racine du projet :
 
+1. Créez votre fichier d'environnement à partir de l'exemple :
+
+```sh
+cp .env.example .env
+```
+
+2. Adaptez les variables sensibles dans `.env` (`DJANGO_SECRET_KEY`, `DJANGO_SUPERUSER_PASSWORD`, `DJANGO_ALLOWED_HOSTS`, etc.).
+	`DJANGO_ENV` accepte `developpement` ou `production`.
+	`DJANGO_DEBUG` accepte `True` ou `False`.
+
+3. Démarrez les services :
+
 ```sh
 docker compose up -d
 ```
