@@ -40,6 +40,29 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+def _derive_csrf_trusted_origins(allowed_hosts):
+    origins = []
+    for host in allowed_hosts:
+        clean_host = host.strip().lstrip('.')
+        if not clean_host or clean_host == '*':
+            continue
+        origins.append(f'http://{clean_host}')
+        origins.append(f'https://{clean_host}')
+        if clean_host in ('localhost', '127.0.0.1'):
+            origins.append(f'http://{clean_host}:8000')
+            origins.append(f'https://{clean_host}:8000')
+    return list(dict.fromkeys(origins))
+
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        'DJANGO_CSRF_TRUSTED_ORIGINS',
+        ','.join(_derive_csrf_trusted_origins(ALLOWED_HOSTS)),
+    ).split(',')
+    if origin.strip()
+]
+
 
 # Application definition
 ASGI_APPLICATION = "website.asgi.application"
@@ -160,7 +183,7 @@ DATE_FORMAT = "l d F y"
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    BASE_DIR / 'static',
 ]
 
 # Default primary key field type

@@ -1,5 +1,5 @@
 from django.utils import timezone
-from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, FileResponse, Http404
+from django.http import HttpRequest, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required
 from game.tasks import MATCH_OUT_DIR, get_match_dir, on_end_tournoi
@@ -238,12 +238,10 @@ def redirection_out(request,id,nb):
     else :
         return HttpResponseBadRequest("Champion inexistant")
     if champion.uploader_id == request.user.id or request.user.is_superuser:
-        filename = f"match_{id}_champion{nb}.out.txt"
-        out_path = MATCH_OUT_DIR / str(id) / f"champion{nb}.out.txt"
-        if not out_path.exists():
-            raise Http404("Sortie du champion introuvable")
-        response = FileResponse(open(out_path, "rb"), content_type="text/plain")
-        response["Content-Disposition"] = f"inline; filename={filename}"
+        response = HttpResponse()
+        response["Content-Type"] = "text/plain"
+        response["Content-Disposition"] = f"inline; filename=match_{id}_champion{nb}.out.txt"
+        response["X-Accel-Redirect"] = f"/media/match/{id}/champion{nb}.out.txt"
         return response
     return HttpResponseForbidden("Interdit")
 
@@ -251,17 +249,15 @@ def redirection_out(request,id,nb):
 def redirection_code(request, name):
     champion = get_object_or_404(Champion,nom=name)
     if champion.uploader_id == request.user.id or request.user.is_superuser:
-        content_type = "application/octet-stream"
+        response = HttpResponse()
         for ext, mime in MIMES_TYPES.items():
             if champion.code.name.endswith(ext):
-                content_type = mime
+                response["Content-Type"] = mime
                 break
-
-        if not champion.code:
-            raise Http404("Code champion introuvable")
-        code_path = champion.code.path
-        response = FileResponse(open(code_path, "rb"), content_type=content_type)
+        else:
+            response["Content-Type"] = "application/octet-stream"
         response["Content-Disposition"] = "attachment; filename=" + champion.code.name
+        response["X-Accel-Redirect"] = champion.code.url
         return response
     return HttpResponseForbidden("Interdit")
 
