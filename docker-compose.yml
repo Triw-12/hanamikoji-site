@@ -20,9 +20,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh -c "python3 manage.py migrate && python3 manage.py collectstatic --noinput && (python3 manage.py createsuperuser --noinput || true) && daphne -b 0.0.0.0 -p 8000 website.asgi:application"
+    command: sh -c "python3 manage.py migrate && python3 manage.py collectstatic --noinput && make -C /app/game/user_champion champion.so && (python3 manage.py createsuperuser --noinput || true) && daphne -b 0.0.0.0 -p 8000 website.asgi:application"
     env_file:
       - .env
+    privileged: true
     volumes:
       - ./website:/app
       - static_data:/app/staticfiles
