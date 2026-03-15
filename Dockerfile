@@ -74,8 +74,7 @@ RUN pip install --no-cache-dir \
     django-q \
     daphne \
     psycopg2-binary \
-    "channels[daphne]" \
-    whitenoise
+    "channels[daphne]"
 
 COPY --from=engine-build /engine-root/usr/ /usr/
 

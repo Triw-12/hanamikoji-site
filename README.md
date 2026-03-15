@@ -73,3 +73,10 @@ cp .env.example .env
 ```sh
 docker compose up -d
 ```
+
+### Notes de déploiement
+
+- Les fichiers statiques sont générés avec `python3 manage.py collectstatic --noinput` dans le service `web`.
+- Le service `nginx` sert ensuite `/static/` depuis un volume Docker partagé (`static_data`) pour éviter d'utiliser WhiteNoise.
+- Le service `nginx` sert aussi `/media/` depuis `website/codes`.
+- Les dumps de match et sorties champion sont accessibles directement sous `/media/match/<id>/`.
