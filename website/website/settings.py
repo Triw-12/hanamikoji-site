@@ -49,6 +49,12 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+if DJANGO_ENV == 'production':
+    # Nginx termine TLS et informe Django via X-Forwarded-Proto.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
 
 # Application definition
 ASGI_APPLICATION = "website.asgi.application"

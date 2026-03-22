@@ -27,7 +27,33 @@ Il est possible de déployer le site directement via Docker. Assurez-vous d'avoi
 docker compose up -d
 ```
 
-Dans un environnement virtuel (ou pas), dans un terminal, écrivez :
+### Activer HTTPS avec Certbot
+
+1. Vérifiez que le domaine pointe bien vers le serveur (DNS A/AAAA).
+2. Renseignez dans `.env` les variables `CERTBOT_DOMAIN` (votre domaine) et `CERTBOT_EMAIL` (votre adresse email).
+3. Démarrez la stack en HTTP (fichier `deploy/nginx/default.conf`) :
+
+```sh
+docker compose up -d
+```
+
+4. Générez le certificat Let's Encrypt:
+
+```sh
+docker compose run --rm certbot certonly --webroot -w /var/www/certbot \
+	--email "$CERTBOT_EMAIL" --agree-tos --no-eff-email -d "$CERTBOT_DOMAIN"
+```
+
+Le service `certbot` lancé par `docker compose up -d` peut démarrer sans certificat existant : il tente des renouvellements en boucle et n'empêche pas la stack de fonctionner avant la première émission.
+
+5. Adaptez `server_name` et les chemins de certificat dans `deploy/nginx/default.https.conf`.
+
+6. Activez la configuration HTTPS et rechargez Nginx:
+
+```sh
+cp deploy/nginx/default.https.conf deploy/nginx/default.conf
+docker compose exec nginx nginx -s reload
+```
 
 ### Déploiement manuellement
 
