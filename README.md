@@ -41,7 +41,7 @@ docker compose up -d
 
 ```sh
 docker compose run --rm certbot certonly --webroot -w /var/www/certbot \
-	--email "$CERTBOT_EMAIL" --agree-tos --no-eff-email -d "$CERTBOT_DOMAIN"
+  --email <votre adresse email> --agree-tos --no-eff-email -d <votre nom de domaine>
 ```
 
 Le service `certbot` lancé par `docker compose up -d` peut démarrer sans certificat existant : il tente des renouvellements en boucle et n'empêche pas la stack de fonctionner avant la première émission.
