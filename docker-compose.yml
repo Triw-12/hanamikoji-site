@@ -69,6 +69,14 @@ services:
     volumes:
       - certbot_www:/var/www/certbot
       - certbot_certs:/etc/letsencrypt
+    profiles:
+      - manual
+
+  certbot-renew:
+    image: certbot/certbot:latest
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
     entrypoint: /bin/sh
     command: -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet || true; sleep 12h & wait $$!; done'
     restart: unless-stopped
