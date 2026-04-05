@@ -10,6 +10,7 @@ import shutil
 import tempfile
 from django.utils import timezone
 from django_q.tasks import Task, async_task
+import time
 
 from website.settings import ISOLATE_TIMEOUT, MATCH_RULES, MATCH_SERVER_TIMEOUT, SERVER_TIMEOUT, MEDIA_ROOT, STECHEC_CLIENT, STECHEC_SERVER, MAX_ISOLATE
 from .models import Champion, Inscrit, Match, Tournoi, relancer_matchs
@@ -315,9 +316,12 @@ def launch_tournoi(tournoi_id: str):
                 matchs.append(Match(champion1=ins1.champion, champion2=ins2.champion, tournoi=tournoi))
                 matchs.append(Match(champion1=ins2.champion, champion2=ins1.champion, tournoi=tournoi))
 
+    if not matchs:
+        tournoi.status = Tournoi.Status.ERREUR
+        tournoi.save()
+        return
 
-    tournoi.status = Tournoi.Status.EN_COURS
-    tournoi.nb_matchs_done = 0
+    tournoi.status = Tournoi.Status.CREATION_DES_MATCHS
     tournoi.date_lancement = timezone.now()
     tournoi.nb_matchs = len(matchs)
     tournoi.save()
@@ -331,5 +335,11 @@ def launch_tournoi(tournoi_id: str):
 
 
     Match.objects.bulk_create(matchs)
+
+    time.sleep(0.5)
+
+    tournoi.status = Tournoi.Status.EN_COURS
+    tournoi.save()
+
     for m in matchs:
         async_task('game.tasks.run_match', m, hook='game.tasks.on_end_match', group=f"tournoi-{tournoi.id_tournoi}")

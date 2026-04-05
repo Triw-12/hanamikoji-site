@@ -67,7 +67,7 @@ docker compose exec nginx nginx -s reload
 
 ```
 cd hanamikoji-site/website
-pip install django django_q daphne
+pip install "django<5" django_q daphne
 pip install -U 'channels[daphne]'
 ```
 
