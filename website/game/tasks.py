@@ -40,12 +40,30 @@ RE_MATCH_SCORE = re.compile('score: (.*)')
 RE_FIN_PREMATUREE = re.compile('Il perd donc.')
 MAX_ISOLATE_HALF = MAX_ISOLATE // 2
 MAX_ISOLATE_TRY = 10
+DEFERRED_MATCH_RESULT = "__DEFERRED_RECOMPILE__"
 
 def get_build_dir(champion: Champion):
     return (PATH_BUILD_DIR / champion.code.name).with_suffix('')
 
 def get_match_dir(match: Match):
     return MATCH_OUT_DIR / str(match.id_match)
+
+
+def get_champion_artifact(champion: Champion):
+    return get_build_dir(champion) / 'champion.so'
+
+
+def ensure_champion_compiled(champion: Champion):
+    artifact = get_champion_artifact(champion)
+    if artifact.exists():
+        return True
+
+    if champion.compilation_status != Champion.Status.EN_COURS:
+        champion.compilation_status = Champion.Status.EN_ATTENTE
+        champion.save(compile=False)
+        async_task('game.tasks.compile_champion', champion, hook='game.tasks.on_end_compilation', group="compile")
+
+    return False
 
 
 def compile_champion(champion: Champion):
@@ -109,6 +127,12 @@ def on_end_compilation(task: Task):
         relancer_matchs(Match.of_champion(c))
 
 def run_match(match: Match):
+    if not ensure_champion_compiled(match.champion1) or not ensure_champion_compiled(match.champion2):
+        match.status = Match.Status.EN_ATTENTE
+        match.fin_prematuree = False
+        match.save(run=False)
+        return DEFERRED_MATCH_RESULT
+
     match.status = Match.Status.EN_COURS
     match.save(run=False)
     match_dir = get_match_dir(match)
@@ -256,6 +280,13 @@ async def run_client(match_dir, champion_name, champion_path: Path, req_addr, su
 
 def on_end_match(task: Task):
     m: Match = task.args[0]
+    if task.result == DEFERRED_MATCH_RESULT:
+        m.status = Match.Status.EN_ATTENTE
+        m.fin_prematuree = False
+        m.match_task = task
+        m.save(run=False)
+        return
+
     m.status = Match.Status.FINI if task.success else Match.Status.ERREUR
     if not task.success:
         m.fin_prematuree = True
